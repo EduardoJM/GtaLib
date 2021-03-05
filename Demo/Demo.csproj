@@ -1,0 +1,14 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net5.0-windows</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\GtaLib\GtaLib.csproj" />
+    <ProjectReference Include="..\RenderWareLib\RenderWareLib.csproj" />
+  </ItemGroup>
+
+</Project>

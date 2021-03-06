@@ -5,7 +5,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Sections\" />
+    <Folder Include="Math\" />
   </ItemGroup>
 
 </Project>

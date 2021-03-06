@@ -5,6 +5,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="OpenTK" Version="4.5.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\GtaLib\GtaLib.csproj" />
     <ProjectReference Include="..\RenderWareLib\RenderWareLib.csproj" />
   </ItemGroup>
 

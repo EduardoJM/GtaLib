@@ -16,6 +16,8 @@ namespace RenderWareLib
 
         public List<RWSection> Children { get; private set; } = new List<RWSection>();
 
+        public byte[] Data { get { return _data; } set { _data = value; } }
+
 
         public RWSection(RWSectionId _id, uint _version)
         {
@@ -234,6 +236,32 @@ namespace RenderWareLib
                     }
                 }
             }
+        }
+
+        public RWSection[] FindChildCollection(RWSectionId id)
+        {
+            EnsureContainer();
+            List<RWSection> sects = new List<RWSection>();
+            for (int i = 0; i < Children.Count; i += 1)
+            {
+                if (Children[i]._header.Id == id)
+                {
+                    sects.Add(Children[i]);
+                }
+            }
+            return sects.ToArray();
+        }
+        public RWSection FindChild(RWSectionId id)
+        {
+            EnsureContainer();
+            for (int i = 0; i < Children.Count; i += 1)
+            {
+                if (Children[i]._header.Id == id)
+                {
+                    return Children[i];
+                }
+            }
+            return null;
         }
     }
 }

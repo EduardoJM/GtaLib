@@ -1,7 +1,10 @@
-﻿using OpenTK;
+﻿using System.Collections.Generic;
+
+using OpenTK;
 using OpenTK.Graphics.OpenGL;
 
 using GtaLib.TXD;
+using GtaLib.TXD.Utils;
 using GtaLib.Renderer.Utils;
 using RenderWareLib.SectionsData.TXD;
 
@@ -152,6 +155,27 @@ namespace GtaLib.Renderer.TXD
                 else
                 {
                     // TODO: implements support for other formats (uncompressed) here
+                    TXDConverter conv = new TXDConverter();
+                    TXDTexture outTexture = texture.Clone();
+                    outTexture.RasterFormat = TXDRasterFormat.RasterFormatR8G8B8A8;
+                    List<TXDTextureMipMapData> outMipMaps = null;
+                    if (conv.Convert(texture, outTexture, out outMipMaps))
+                    {
+                        for (int i = 0; i < outMipMaps.Count; i += 1)
+                        {
+                            GL.TexImage2D(
+                                TextureTarget.Texture2D,
+                                i,
+                                PixelInternalFormat.Rgba,
+                                outMipMaps[i].Width,
+                                outMipMaps[i].Height,
+                                0,
+                                PixelFormat.Rgba,
+                                PixelType.UnsignedByte,
+                                outMipMaps[i].RasterData
+                            );
+                        }
+                    }
                 }
             }
             return id;

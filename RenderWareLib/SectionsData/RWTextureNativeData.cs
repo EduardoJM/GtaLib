@@ -224,5 +224,27 @@ namespace RenderWareLib.SectionsData
 
 			return size;
 		}
+
+		public RWTextureNativeData Clone()
+        {
+			return new RWTextureNativeData()
+			{
+				Platform = this.Platform,
+				FilterFlags = this.FilterFlags,
+				VWrap = this.VWrap,
+				UWrap = this.UWrap,
+				DiffuseName = this.DiffuseName,
+				AlphaName = this.AlphaName,
+				RasterFormat = this.RasterFormat,
+				AlphaOrCompression = this.AlphaOrCompression,
+				Width = this.Width,
+				Height = this.Height,
+				Bpp = this.Bpp,
+				MipmapCount = this.MipmapCount,
+				RasterType = this.RasterType,
+				CompressionOrAlpha = this.CompressionOrAlpha,
+				RawData = this.RawData,
+			};
+        }
 	}
 }

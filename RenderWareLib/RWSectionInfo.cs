@@ -55,6 +55,11 @@ namespace RenderWareLib
 			_c(RWSectionId.RW_SECTION_PIPELINE_SET, "PIPELINE_SET", false)
 		};
 
+		public bool IsKnownRWSection(uint id)
+        {
+			return RWGetSectionInfo((RWSectionId)id, out RWSectionInfo info);
+        }
+
 		public static bool RWGetSectionInfo(RWSectionId _id, out RWSectionInfo info)
 		{
 			info = _c(RWSectionId.RW_SECTION_INVALID, "INVALID", false);

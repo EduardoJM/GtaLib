@@ -1,8 +1,7 @@
 ﻿using System;
+using System.Drawing;
+using System.Drawing.Imaging;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 using RenderWareLib;
 using RenderWareLib.SectionsData;
@@ -44,6 +43,14 @@ namespace GtaLib.TXD
             set { _native.Height = value; }
         }
 
+        public TXDRasterFormat RasterFormat
+        {
+            get { return (TXDRasterFormat)_native.RasterFormat; }
+            set { _native.RasterFormat = (int)value; }
+        }
+
+        public byte[] Palette { get; private set; }
+
         internal TXDTexture(RWTextureNativeData native)
         {
             _native = native;
@@ -58,16 +65,24 @@ namespace GtaLib.TXD
             return (TXDRasterFormat)(_native.RasterFormat & (int)TXDRasterFormat.RasterFormatEXTMask);
         }
 
+        public bool IsAlphaChannelUsed()
+        {
+            return _native.GetAlphaIsUsed();
+        }
+
         public TXDTextureMipMapData[] GetMipLevelsData()
         {
-            // TODO: implements palette support.
             int position = 0;
             if ((GetRasterFormatExtension() & TXDRasterFormat.RasterFormatEXTPAL4) != 0)
             {
+                Palette = new byte[16 * 4];
+                Array.Copy(_native.RawData, 0, Palette, 0, 16 * 4);
                 position += 16 * 4;
             }
             else if ((GetRasterFormatExtension() & TXDRasterFormat.RasterFormatEXTPAL8) != 0)
             {
+                Palette = new byte[256 * 4];
+                Array.Copy(_native.RawData, 0, Palette, 0, 256 * 4);
                 position += 256 * 4;
             }
             List<TXDTextureMipMapData> data = new List<TXDTextureMipMapData>();
@@ -93,6 +108,11 @@ namespace GtaLib.TXD
                 mipH /= 2;
             }
             return data.ToArray();
+        }
+
+        public TXDTexture Clone()
+        {
+            return new TXDTexture(_native.Clone());
         }
     }
 }

@@ -1,0 +1,26 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\GtaLib\GtaLib.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="NativeSquish_x64">
+      <HintPath>..\..\NativeSquish_x64.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+    <Reference Include="NativeSquish_x86">
+      <HintPath>..\..\NativeSquish_x86.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+  </ItemGroup>
+
+</Project>

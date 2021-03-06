@@ -30,6 +30,18 @@ namespace RenderWareLib
                 return false;
             }
             outHeader = new RWSectionHeader((RWSectionId)br.ReadUInt32(), br.ReadUInt32(), br.ReadUInt32());
+
+            if (outHeader.Id == RWSectionId.RW_SECTION_STRUCT && lastRead != null)
+            {
+                if (lastRead.Id == RWSectionId.RW_SECTION_CLUMP)
+                {
+                    outHeader.Size = 12;
+                }
+                else if (lastRead.Id == RWSectionId.RW_SECTION_MATERIALLIST)
+                {
+                    outHeader.Size = 4;
+                }
+            }
             /*
             if (lastRead != null)
             {
@@ -74,6 +86,13 @@ namespace RenderWareLib
         public bool IsContainer()
         {
             return IsContainerSection(Id);
+        }
+
+        public void Write(BinaryWriter bw)
+        {
+            bw.Write((uint)Id);
+            bw.Write((uint)Size);
+            bw.Write((uint)Version);
         }
     }
 }

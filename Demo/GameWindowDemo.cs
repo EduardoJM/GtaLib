@@ -83,7 +83,7 @@ namespace Demo
             GL.EnableVertexAttribArray(texCoordLocation);
             GL.VertexAttribPointer(texCoordLocation, 2, VertexAttribPointerType.Float, false, 5 * sizeof(float), 3 * sizeof(float));
 
-            using (FileStream fs = File.Open(@"C:\Users\Eduardo\Documents\Mods\GTA_V_Rotating_Ferris_Wheel\GTA V Rotating Ferris Wheel\ferriswheel_seat.txd", FileMode.Open))
+            using (FileStream fs = File.Open(@"C:\Users\Eduardo\Documents\Mods\San_Andreas_Farming_Equipment_DLC\San Andreas Farming Equipment DLC\combine.txd", FileMode.Open))
             {
                 using (BinaryReader br = new BinaryReader(fs))
                 {
@@ -93,7 +93,7 @@ namespace Demo
                     {
                         this.archive = archive;
                         GL.ActiveTexture(TextureUnit.Texture0);
-                        _textId = archive.Textures[5].Upload();
+                        _textId = archive.Textures[0].Upload();
                     }
                 }
             }

@@ -6,6 +6,7 @@
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <DocumentationFile>C:\Users\Eduardo\source\repos\GtaLib\GtaLib.SquishExtension\GtaLib.Squish.xml</DocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>

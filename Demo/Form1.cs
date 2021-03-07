@@ -43,6 +43,7 @@ namespace Demo
                     }
                     */
 
+                    /*
                     using (MemoryStream ms = new MemoryStream())
                     {
                         using (BinaryWriter bw = new BinaryWriter(ms))
@@ -59,6 +60,7 @@ namespace Demo
                             }
                         }
                     }
+                    */
 
                     /*
                     RWSectionHeader header;

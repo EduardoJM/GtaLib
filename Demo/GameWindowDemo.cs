@@ -83,7 +83,7 @@ namespace Demo
             GL.EnableVertexAttribArray(texCoordLocation);
             GL.VertexAttribPointer(texCoordLocation, 2, VertexAttribPointerType.Float, false, 5 * sizeof(float), 3 * sizeof(float));
 
-            using (FileStream fs = File.Open(@"C:\Users\Eduardo\Documents\Mods\San_Andreas_Farming_Equipment_DLC\San Andreas Farming Equipment DLC\combine.txd", FileMode.Open))
+            using (FileStream fs = File.Open(@"D:\Jogos\GTA San Andreas\models\effectsPC.txd", FileMode.Open))
             {
                 using (BinaryReader br = new BinaryReader(fs))
                 {
@@ -93,7 +93,7 @@ namespace Demo
                     {
                         this.archive = archive;
                         GL.ActiveTexture(TextureUnit.Texture0);
-                        _textId = archive.Textures[0].Upload();
+                        _textId = archive.Textures[32].Upload();
                     }
                 }
             }
@@ -106,11 +106,18 @@ namespace Demo
             GL.Clear(ClearBufferMask.ColorBufferBit);
 
             GL.BindVertexArray(_vertexArrayObject);
-            
+
+
+
+            GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
+            GL.Enable(EnableCap.Blend);
+
             GL.ActiveTexture(TextureUnit.Texture0);
             _shader.Use();
 
             GL.DrawElements(PrimitiveType.Triangles, _indices.Length, DrawElementsType.UnsignedInt, 0);
+
+            GL.Disable(EnableCap.Blend);
 
             SwapBuffers();
 

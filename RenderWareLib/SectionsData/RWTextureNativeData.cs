@@ -68,6 +68,10 @@ namespace RenderWareLib.SectionsData
 					{
 						method = TXDCompression.DXT3;
 					}
+					else if (fourCC[3] == '5')
+                    {
+						method = TXDCompression.DXT5;
+					}
 				}
 			}
 			else
@@ -129,6 +133,7 @@ namespace RenderWareLib.SectionsData
 			{
 				case TXDCompression.DXT1:
 				case TXDCompression.DXT3:
+				case TXDCompression.DXT5:
 					minW = 4;
 					minH = 4;
 					break;
@@ -178,7 +183,7 @@ namespace RenderWareLib.SectionsData
 			int mipW = (int)(Width / scale);
 			int mipH = (int)(Height / scale);
 
-			if (compression == TXDCompression.DXT1 || compression == TXDCompression.DXT3)
+			if (compression == TXDCompression.DXT1 || compression == TXDCompression.DXT3 || compression == TXDCompression.DXT5)
 			{
 				if (mipW < 4)
 					mipW = 4;
@@ -197,6 +202,7 @@ namespace RenderWareLib.SectionsData
 					mipSize /= 2;
 					break;
 				case TXDCompression.DXT3:
+				case TXDCompression.DXT5:
 					// Size already correct
 					break;
 			}

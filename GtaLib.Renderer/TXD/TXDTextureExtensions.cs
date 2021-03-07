@@ -1,10 +1,7 @@
-﻿using System.Collections.Generic;
-
-using OpenTK;
+﻿using System;
 using OpenTK.Graphics.OpenGL;
 
 using GtaLib.TXD;
-using GtaLib.TXD.Utils;
 using GtaLib.Renderer.Utils;
 using RenderWareLib.SectionsData.TXD;
 
@@ -23,6 +20,24 @@ namespace GtaLib.Renderer.TXD
         const int GL_NEAREST_MIPMAP_LINEAR = 0x2702;
         const int GL_LINEAR_MIPMAP_LINEAR = 0x2703;
 
+
+        static byte[] FlipBGRAtoRGBA(byte[] data)
+        {
+            byte[] outData = new byte[data.Length];
+            for (int i = 0; i < data.Length; i += 4)
+            {
+                // B8G8R8A8 -> RGBA
+                byte b = data[i + 0];
+                byte g = data[i + 1];
+                byte r = data[i + 2];
+                byte a = data[i + 3];
+                outData[i + 0] = r;
+                outData[i + 1] = g;
+                outData[i + 2] = b;
+                outData[i + 3] = a;
+            }
+            return outData;
+        }
 
         public static int Upload(this TXDTexture texture)
         {
@@ -131,15 +146,24 @@ namespace GtaLib.Renderer.TXD
 
                 TXDCompression compr = texture.Compression;
 
-                if (compr == TXDCompression.DXT1 || compr == TXDCompression.DXT3)
+                if (compr == TXDCompression.DXT1 || compr == TXDCompression.DXT3 || compr == TXDCompression.DXT5)
                 {
                     TXDTextureMipMapData[] levels = texture.GetMipLevelsData();
                     for (int i = 0; i < levels.Length; i += 1)
                     {
+                        InternalFormat internalF = InternalFormat.CompressedRgbaS3tcDxt1Ext;
+                        if (compr == TXDCompression.DXT3)
+                        {
+                            internalF = InternalFormat.CompressedRgbaS3tcDxt3Ext;
+                        }
+                        else if (compr == TXDCompression.DXT5)
+                        {
+                            internalF = InternalFormat.CompressedRgbaS3tcDxt5Ext;
+                        }
                         GL.CompressedTexImage2D(
                             TextureTarget.Texture2D,
                             i,
-                            compr == TXDCompression.DXT1 ? InternalFormat.CompressedRgbaS3tcDxt1Ext : InternalFormat.CompressedRgbaS3tcDxt3Ext,
+                            internalF,
                             levels[i].Width,
                             levels[i].Height,
                             0,
@@ -154,27 +178,53 @@ namespace GtaLib.Renderer.TXD
                 }
                 else
                 {
-                    // TODO: implements support for other formats (uncompressed) here
-                    TXDConverter conv = new TXDConverter();
-                    TXDTexture outTexture = texture.Clone();
-                    outTexture.RasterFormat = TXDRasterFormat.RasterFormatR8G8B8A8;
-                    List<TXDTextureMipMapData> outMipMaps = null;
-                    if (conv.Convert(texture, outTexture, out outMipMaps))
+                    if (texture.RasterFormat == TXDRasterFormat.RasterFormatB8G8R8A8)
                     {
-                        for (int i = 0; i < outMipMaps.Count; i += 1)
+                        TXDTextureMipMapData[] levels = texture.GetMipLevelsData();
+                        for (int i = 0; i < levels.Length; i += 1)
                         {
                             GL.TexImage2D(
                                 TextureTarget.Texture2D,
                                 i,
                                 PixelInternalFormat.Rgba,
-                                outMipMaps[i].Width,
-                                outMipMaps[i].Height,
+                                levels[i].Width,
+                                levels[i].Height,
                                 0,
-                                PixelFormat.Rgba,
+                                PixelFormat.Bgra,
                                 PixelType.UnsignedByte,
-                                outMipMaps[i].RasterData
+                                levels[i].RasterData
                             );
+                            if (i == levels.Length - 1)
+                            {
+                                GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMaxLevel, i - 1);
+                            }
                         }
+                    }
+                    else if (texture.RasterFormat == TXDRasterFormat.RasterFormatB8G8R8)
+                    {
+                        TXDTextureMipMapData[] levels = texture.GetMipLevelsData();
+                        for (int i = 0; i < levels.Length; i += 1)
+                        {
+                            GL.TexImage2D(
+                                TextureTarget.Texture2D,
+                                i,
+                                levels[i].RasterSize == levels[i].Width * levels[i].Height * 3 ? PixelInternalFormat.Rgb : PixelInternalFormat.Rgba,
+                                levels[i].Width,
+                                levels[i].Height,
+                                0,
+                                levels[i].RasterSize == levels[i].Width * levels[i].Height * 3 ? PixelFormat.Bgr : PixelFormat.Bgra,
+                                PixelType.UnsignedByte,
+                                levels[i].RasterData
+                            );
+                            if (i == levels.Length - 1)
+                            {
+                                GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMaxLevel, i - 1);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        throw new NotImplementedException("Raster Format: " + texture.RasterFormat.ToString() + " not supported yet.");
                     }
                 }
             }

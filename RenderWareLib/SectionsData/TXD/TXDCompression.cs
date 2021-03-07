@@ -14,5 +14,9 @@
         /// DXT3 compression (S3TC)
         /// </summary>
         DXT3 = 3,
+        /// <summary>
+        /// DXT5 compression (S3TC)
+        /// </summary>
+        DXT5 = 4,
     }
 }

@@ -8,6 +8,9 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RenderWareLib", "RenderWareLib\RenderWareLib.csproj", "{3C611B0F-5479-4291-AF11-C8F9696AFADA}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Demo", "Demo\Demo.csproj", "{47D0A0CA-E7B7-4432-B451-108E22374F7B}"
+	ProjectSection(ProjectDependencies) = postProject
+		{04ECAB27-79A8-4603-9D7C-87BD83B4D643} = {04ECAB27-79A8-4603-9D7C-87BD83B4D643}
+	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GtaLib.Renderer", "GtaLib.Renderer\GtaLib.Renderer.csproj", "{8F4F5833-8286-4C01-AA84-FDD21E148B3E}"
 EndProject

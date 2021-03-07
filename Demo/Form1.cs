@@ -15,6 +15,8 @@ using RenderWareLib;
 using RenderWareLib.SectionsData.TXD;
 using GtaLib.Renderer.TXD;
 
+using GtaLib.Squish;
+
 using GtaLib.Experimental.ForceReader;
 
 namespace Demo
@@ -32,6 +34,23 @@ namespace Demo
                     ForceTXDReader ftr = new ForceTXDReader(br);
                     RWSection sec = ftr.Read();
                     AddNode(sec);
+
+                    using (MemoryStream ms = new MemoryStream())
+                    {
+                        using (BinaryWriter bw = new BinaryWriter(ms))
+                        {
+                            sec.Write(bw);
+                        }
+                        using (MemoryStream ms2 = new MemoryStream(ms.ToArray()))
+                        {
+                            using (BinaryReader mBr = new BinaryReader(ms2))
+                            {
+                                TXDArchive arc = new TXDArchive();
+                                arc.Read(mBr);
+                                this.pictureBox1.Image = arc.Textures[2].GetBitmapImage(0);
+                            }
+                        }
+                    }
 
                     /*
                     using (FileStream wfs = File.Create(@"C:\Users\Eduardo\Documents\Mods\San_Andreas_Farming_Equipment_DLC\San Andreas Farming Equipment DLC\combine_unlock.txd"))

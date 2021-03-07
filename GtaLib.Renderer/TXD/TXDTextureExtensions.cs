@@ -20,25 +20,6 @@ namespace GtaLib.Renderer.TXD
         const int GL_NEAREST_MIPMAP_LINEAR = 0x2702;
         const int GL_LINEAR_MIPMAP_LINEAR = 0x2703;
 
-
-        static byte[] FlipBGRAtoRGBA(byte[] data)
-        {
-            byte[] outData = new byte[data.Length];
-            for (int i = 0; i < data.Length; i += 4)
-            {
-                // B8G8R8A8 -> RGBA
-                byte b = data[i + 0];
-                byte g = data[i + 1];
-                byte r = data[i + 2];
-                byte a = data[i + 3];
-                outData[i + 0] = r;
-                outData[i + 1] = g;
-                outData[i + 2] = b;
-                outData[i + 3] = a;
-            }
-            return outData;
-        }
-
         public static int Upload(this TXDTexture texture)
         {
             int id = -1;

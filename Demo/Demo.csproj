@@ -2,17 +2,17 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <TargetFramework>net5.0-windows</TargetFramework>
     <UseWindowsForms>true</UseWindowsForms>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="OpenTK" Version="4.5.0" />
-    <PackageReference Include="OpenTK.GLControl" Version="3.1.0" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\GtaLib.Renderer\GtaLib.Renderer.csproj" />
+    <ProjectReference Include="..\GtaLib.SquishExtension\GtaLib.Squish.csproj" />
     <ProjectReference Include="..\GtaLib\GtaLib.csproj" />
     <ProjectReference Include="..\RenderWareLib\RenderWareLib.csproj" />
   </ItemGroup>

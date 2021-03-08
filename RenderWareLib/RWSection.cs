@@ -4,97 +4,49 @@ using System.Collections.Generic;
 
 namespace RenderWareLib
 {
+    /// <summary>
+    /// Provides a class to work with RenderWare Binary Stream File Sections.
+    /// </summary>
     public class RWSection
     {
-        private RWSectionHeader _header;
-
-        private ulong _offset;
-
-        private RWSection _parent;
-
-        private byte[] _data;
-
-        public List<RWSection> Children { get; private set; } = new List<RWSection>();
-
-        public byte[] Data { get { return _data; } set { _data = value; } }
-
-        public RWSection(RWSectionId _id, uint _version)
-        {
-            _header = new RWSectionHeader(_id, 0, _version);
-            _offset = 0L;
-            _parent = null;
-            _data = null;
-        }
-
-        public RWSection(RWSectionId _id, RWSection parent)
-        {
-            _header = new RWSectionHeader(_id, 0, parent._header.Version);
-            _offset = 0L;
-            _data = null;
-            parent.AddChild(this);
-            _parent = parent;
-        }
-
-        public RWSection(RWSectionHeader header)
-        {
-            _header = header;
-            _offset = 0;
-            _data = null;
-            _parent = null;
-        }
-
+        #region Static Methods
+        /// <summary>
+        /// Read a RWSection body content.
+        /// </summary>
+        /// <param name="br">The BinaryReader.</param>
+        /// <param name="header">The Section Header.</param>
+        /// <returns>The complete readed Section.</returns>
         public static RWSection ReadSectionBody(BinaryReader br, RWSectionHeader header)
         {
             RWSection sect = new RWSection(header);
-            sect._offset = 0;
             bool dataSect = !RWSectionInfo.RWIsSectionContainer(header.Id);
             System.Diagnostics.Debug.Print(sect.GetDescription() + " - " + dataSect.ToString());
             if (dataSect)
             {
-                /*
-                if (header.Id == RWSectionId.RW_SECTION_STRUCT && lastRead != null)
-                {
-                    System.Diagnostics.Debug.Print("Section " +header.Id.ToString() +  " Data Size: " + header.Size);
-                    if (lastRead._header.Id == RWSectionId.RW_SECTION_CLUMP)
-                    {
-                        header.Size = 12;
-                    } else if (lastRead._header.Id == RWSectionId.RW_SECTION_MATERIALLIST)
-                    {
-                        header.Size = 4;
-                    }
-                }
-                */
                 if (br.BaseStream.Position + header.Size > br.BaseStream.Length)
                 {
-                    /*
                     throw new RWBinaryStreamException(
                         "Premature end of RWBS file: Data section ",
                         sect.GetDescription(),
                         "."
                     );
-                    */
-                    // TODO: create a method to change skip method
                 }
                 else
                 {
-                    sect._data = br.ReadBytes((int)header.Size);
-                    if (sect._header.Id == RWSectionId.RW_SECTION_STRING)
-                    {
-                        System.Diagnostics.Debug.Print(" @ String: " + System.Text.Encoding.ASCII.GetString(sect._data));
-                    }
+                    sect.Data = br.ReadBytes((int)header.Size);
                 }
             }
             else
             {
-                sect._data = null;
+                sect.Data = null;
                 RWSection newLastRead = sect;
                 uint numRead = 0;
-                while (numRead < sect._header.Size)
+                while (numRead < sect.Header.Size)
                 {
                     RWSection child = RWSection.ReadSection(br, newLastRead);
                     System.Diagnostics.Debug.Print((child == null).ToString());
-                    child._parent = sect;
-                    numRead += child._header.Size + 12;
+                    child.Parent = sect;
+                    numRead += child.Header.Size + 12;
                     sect.Children.Add(child);
                     newLastRead = child;
                 }
@@ -102,27 +54,113 @@ namespace RenderWareLib
             return sect;
         }
 
+        /// <summary>
+        /// Read a RWSection.
+        /// </summary>
+        /// <param name="br">The BinaryReader.</param>
+        /// <param name="lastRead">The last readed Section.</param>
+        /// <returns>A readed section or null if not possible to read.</returns>
         public static RWSection ReadSection(BinaryReader br, RWSection lastRead)
         {
             RWSectionHeader header;
-            if (!RWSectionHeader.ReadSectionHeader(br, out header, lastRead != null ? lastRead._header : null))
+            if (!RWSectionHeader.ReadSectionHeader(br, out header, lastRead != null ? lastRead.Header : null))
             {
-                System.Diagnostics.Debug.Print("Failed on header");
                 return null;
             }
             return ReadSectionBody(br, header);
         }
+        #endregion
 
-        public string GetDescription()
+        #region Fields
+        private byte[] _data = null;
+        #endregion
+
+        #region Properties
+        /// <summary>
+        /// Gets the Section Header.
+        /// </summary>
+        public RWSectionHeader Header { get; private set; }
+
+        /// <summary>
+        /// Gets the Section Parent.
+        /// </summary>
+        public RWSection Parent { get; private set; }
+
+        /// <summary>
+        /// Gets the Section Children Collection.
+        /// </summary>
+        public List<RWSection> Children { get; private set; } = new List<RWSection>();
+
+        /// <summary>
+        /// Gets or Sets the Section Data;
+        /// </summary>
+        public byte[] Data
         {
-            return RWSectionInfo.RWGetSectionName(_header.Id) + " (" + _header.Size + " bytes @ 0x" + _offset.ToString("X") + ")";
+            get { return _data; }
+            set
+            {
+                if (value == null || value.Length == 0)
+                {
+                    _data = value;
+                    if (Header != null)
+                    {
+                        Header.Size = 0;
+                    }
+                }
+                else
+                {
+                    _data = value;
+                    Header.Size = (uint)_data.Length;
+                }
+            }
+        }
+        #endregion
+
+        #region Constructors
+        /// <summary>
+        /// Creates a new instance of RWSection.
+        /// </summary>
+        /// <param name="_id">The Section Identifier.</param>
+        /// <param name="_version">The Section RenderWare Version.</param>
+        public RWSection(RWSectionId _id, uint _version)
+        {
+            Header = new RWSectionHeader(_id, 0, _version);
+            Parent = null;
+            Data = null;
         }
 
+        /// <summary>
+        /// Creates a new instance of RWSection.
+        /// </summary>
+        /// <param name="_id">The Section Identifier.</param>
+        /// <param name="parent">The parent Section.</param>
+        public RWSection(RWSectionId _id, RWSection parent)
+        {
+            Header = new RWSectionHeader(_id, 0, parent.Header.Version);
+            Data = null;
+            Parent = parent;
+            Parent.AddChild(this);
+        }
+
+        /// <summary>
+        /// Creates a new instance of RWSection.
+        /// </summary>
+        /// <param name="header">The Section Header.</param>
+        public RWSection(RWSectionHeader header)
+        {
+            Header = header;
+            Data = null;
+            Parent = null;
+        }
+
+        /// <summary>
+        /// Creates a new instance of RWSection.
+        /// </summary>
+        /// <param name="_rawData">The Section Raw Data.</param>
         public RWSection(byte[] _rawData)
         {
-            _offset = 0L;
-            _parent = null;
-            _data = null;
+            Parent = null;
+            Data = null;
             if (_rawData.Length < 12)
             {
                 throw new RWBinaryStreamException(
@@ -132,14 +170,14 @@ namespace RenderWareLib
                 );
             }
 
-            _header = new RWSectionHeader(
+            Header = new RWSectionHeader(
                 (RWSectionId)BitConverter.ToUInt32(_rawData, 0),
                 BitConverter.ToUInt32(_rawData, 4),
                 BitConverter.ToUInt32(_rawData, 8)
             );
-            bool isDataSect = !RWSectionHeader.IsContainerSection(_header.Id);
+            bool isDataSect = !RWSectionHeader.IsContainerSection(Header.Id);
             int readedSize = 12;
-            if (_rawData.Length - readedSize < _header.Size)
+            if (_rawData.Length - readedSize < Header.Size)
             {
                 throw new RWBinaryStreamException(
                     "Premature end of RWBS data: Section ",
@@ -152,12 +190,12 @@ namespace RenderWareLib
 
             if (isDataSect)
             {
-                _data = new byte[_header.Size];
-                Array.Copy(_rawData, readedSize, _data, 0, _header.Size);
+                Data = new byte[Header.Size];
+                Array.Copy(_rawData, readedSize, Data, 0, Header.Size);
             }
             else
             {
-                using (MemoryStream ms = new MemoryStream(_data))
+                using (MemoryStream ms = new MemoryStream(_rawData))
                 {
                     using (BinaryReader br = new BinaryReader(ms))
                     {
@@ -177,8 +215,8 @@ namespace RenderWareLib
                             }
                             try
                             {
-                                RWSection child = new RWSection(br.ReadBytes((int)_header.Size));
-                                child._parent = this;
+                                RWSection child = new RWSection(br.ReadBytes((int)Header.Size));
+                                child.Parent = this;
                                 Children.Add(child);
                             }
                             catch (Exception e)
@@ -191,47 +229,68 @@ namespace RenderWareLib
                 }
             }
         }
+        #endregion
 
+        /// <summary>
+        /// Get an string description of the Section.
+        /// </summary>
+        /// <returns></returns>
+        public string GetDescription()
+        {
+            return RWSectionInfo.RWGetSectionName(Header.Id) + " (" + Header.Size + " bytes)";
+        }
 
+        /// <summary>
+        /// Clear all the Section Childrens.
+        /// </summary>
         public void ClearChildren()
         {
-            if (_data == null)
+            if (Data == null)
             {
                 for (int i = 0; i < Children.Count; i += 1)
                 {
-                    if (Children[i]._parent == this)
+                    if (Children[i].Parent == this)
                     {
-                        Children[i]._parent = null;
+                        Children[i].Parent = null;
                     }
                 }
                 Children.Clear();
+                if (Parent != null)
+                {
+                    // TODO: childResized
+                    Parent.RecalculateSize();
+                }
             }
         }
 
+        /// <summary>
+        /// Add a Child Section to this Section.
+        /// </summary>
+        /// <param name="_child">The Child Section to add.</param>
         public void AddChild(RWSection _child)
         {
             EnsureContainer();
 
-            _header.Size += _child._header.Size + 12;
-            _child._parent = this;
+            Header.Size += _child.Header.Size + 12;
+            _child.Parent = this;
             Children.Add(_child);
-            if (_parent != null)
+            if (Parent != null)
             {
-                // TODO:
-                // _parent.ChildResized(sect->header.size + 12);
+                // TODO: childResized
+                Parent.RecalculateSize();
             }
         }
 
         public void EnsureContainer()
         {
-            if (_data == null)
+            if (Data == null)
             {
                 return;
             }
-            if (_header.IsContainer())
+            if (Header.IsContainer())
             {
                 ClearChildren();
-                using (MemoryStream ms = new MemoryStream(_data))
+                using (MemoryStream ms = new MemoryStream(Data))
                 {
                     using (BinaryReader br = new BinaryReader(ms))
                     {
@@ -250,11 +309,11 @@ namespace RenderWareLib
                             }
                             try
                             {
-                                RWSection child = new RWSection(br.ReadBytes((int)_header.Size));
-                                child._parent = this;
+                                RWSection child = new RWSection(br.ReadBytes((int)Header.Size));
+                                child.Parent = this;
                                 Children.Add(child);
                             }
-                            catch (Exception e)
+                            catch
                             {
                                 ClearChildren();
                                 throw;
@@ -262,7 +321,7 @@ namespace RenderWareLib
                         }
                     }
                 }
-                _data = null;
+                Data = null;
             }
         }
 
@@ -272,7 +331,7 @@ namespace RenderWareLib
             List<RWSection> sects = new List<RWSection>();
             for (int i = 0; i < Children.Count; i += 1)
             {
-                if (Children[i]._header.Id == id)
+                if (Children[i].Header.Id == id)
                 {
                     sects.Add(Children[i]);
                 }
@@ -284,7 +343,7 @@ namespace RenderWareLib
             EnsureContainer();
             for (int i = 0; i < Children.Count; i += 1)
             {
-                if (Children[i]._header.Id == id)
+                if (Children[i].Header.Id == id)
                 {
                     return Children[i];
                 }
@@ -294,9 +353,10 @@ namespace RenderWareLib
 
         public uint RecalculateSize()
         {
-            if (!_header.IsContainer())
+            return 0;
+            if (!Header.IsContainer())
             {
-                _header.Size = (uint)_data.Length;
+                Header.Size = (uint)Data.Length;
             } else
             {
                 EnsureContainer();
@@ -305,17 +365,17 @@ namespace RenderWareLib
                 {
                     size += Children[i].RecalculateSize();
                 }
-                _header.Size = size;
+                Header.Size = size;
             }
-            return _header.Size;
+            return Header.Size;
         }
 
         public void Write(BinaryWriter bw)
         {
-            _header.Write(bw);
-            if (!_header.IsContainer())
+            Header.Write(bw);
+            if (!Header.IsContainer())
             {
-                bw.Write(_data);
+                bw.Write(Data);
             }
             else
             {
@@ -327,4 +387,3 @@ namespace RenderWareLib
         }
     }
 }
-

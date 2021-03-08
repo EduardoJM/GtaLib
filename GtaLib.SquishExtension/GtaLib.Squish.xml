@@ -1,0 +1,177 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>GtaLib.Squish</name>
+    </assembly>
+    <members>
+        <member name="T:GtaLib.Squish.Squish">
+            <summary>
+            Wrapper for libsquish DXT compression/decompression library.
+            </summary>
+        </member>
+        <member name="M:GtaLib.Squish.Squish.GetStorageRequirements(System.Int32,System.Int32,GtaLib.Squish.SquishFlags)">
+            <summary>
+            Returns the final size in bytes of DXT data compressed with the parameters specified in <paramref name="flags"/>.
+            </summary>
+            <param name="width">Source image width.</param>
+            <param name="height">Source image height.</param>
+            <param name="flags">Compression parameters.</param>
+            <returns>Size in bytes of the DXT data.</returns>
+        </member>
+        <member name="M:GtaLib.Squish.Squish.Compress(System.IntPtr,System.IntPtr,GtaLib.Squish.SquishFlags)">
+            <summary>
+            Compress a 4x4 pixel block using the parameters specified in <paramref name="flags"/>.
+            </summary>
+            <param name="rgba">Source RGBA block.</param>
+            <param name="block">Output DXT compressed block.</param>
+            <param name="flags">Compression flags.</param>
+        </member>
+        <member name="M:GtaLib.Squish.Squish.Compress(System.Byte[],GtaLib.Squish.SquishFlags)">
+            <summary>
+            Compress a 4x4 pixel block using the parameters specified in <paramref name="flags"/>.
+            </summary>
+            <param name="rgba">Source RGBA block.</param>
+            <param name="flags">Compression flags.</param>
+            <returns>Output DXT compressed block.</returns>
+        </member>
+        <member name="M:GtaLib.Squish.Squish.CompressMasked(System.IntPtr,System.Int32,System.IntPtr,GtaLib.Squish.SquishFlags)">
+            <summary>
+            Compress a 4x4 pixel block using the parameters specified in <paramref name="flags"/>. The <paramref name="mask"/> parameter is a used as 
+            a bit mask to specifify what pixels are valid for compression, corresponding the lowest bit to the first pixel.
+            </summary>
+            <param name="rgba">Source RGBA block.</param>
+            <param name="mask">Pixel bit mask.</param>
+            <param name="block">Output DXT compressed block.</param>
+            <param name="flags">Compression flags.</param>
+        </member>
+        <member name="M:GtaLib.Squish.Squish.CompressMasked(System.Byte[],System.Int32,GtaLib.Squish.SquishFlags)">
+            <summary>
+            Compress a 4x4 pixel block using the parameters specified in <paramref name="flags"/>. The <paramref name="mask"/> parameter is a used as 
+            a bit mask to specifify what pixels are valid for compression, corresponding the lowest bit to the first pixel.
+            </summary>
+            <param name="rgba">Source RGBA block.</param>
+            <param name="mask">Pixel bit mask.</param>
+            <param name="flags">Compression flags.</param>
+            <returns>Output DXT compressed block.</returns>
+        </member>
+        <member name="M:GtaLib.Squish.Squish.Decompress(System.IntPtr,System.IntPtr,GtaLib.Squish.SquishFlags)">
+            <summary>
+            Decompresses a 4x4 pixel block using the parameters specified in <paramref name="flags"/>.
+            </summary>
+            <param name="rgba">Output RGBA decompressed block.</param>
+            <param name="block">Source DXT block.</param>
+            <param name="flags">Decompression flags.</param>
+        </member>
+        <member name="M:GtaLib.Squish.Squish.Decompress(System.Byte[],GtaLib.Squish.SquishFlags)">
+            <summary>
+            Decompresses a 4x4 pixel block using the parameters specified in <paramref name="flags"/>.
+            </summary>
+            <param name="block">Source DXT block.</param>
+            <param name="flags">Decompression flags.</param>
+            <returns>Output RGBA decompressed block.</returns>
+        </member>
+        <member name="M:GtaLib.Squish.Squish.CompressImage(System.IntPtr,System.Int32,System.Int32,System.IntPtr,GtaLib.Squish.SquishFlags)">
+            <summary>
+            Compresses an image using the parameters specified in <paramref name="flags"/>.
+            </summary>
+            <param name="rgba">Source RGBA image.</param>
+            <param name="width">Width of the image.</param>
+            <param name="height">Height of the image.</param>
+            <param name="blocks">Output DXT compressed image.</param>
+            <param name="flags">Compression flags.</param>
+        </member>
+        <member name="M:GtaLib.Squish.Squish.CompressImage(System.Byte[],System.Int32,System.Int32,GtaLib.Squish.SquishFlags)">
+            <summary>
+            Compresses an image using the parameters specified in <paramref name="flags"/>.
+            </summary>
+            <param name="rgba">Source RGBA image.</param>
+            <param name="width">Width of the image.</param>
+            <param name="height">Height of the image.</param>
+            <param name="flags">Compression flags.</param>
+            <returns>Output DXT compressed image.</returns>
+        </member>
+        <member name="M:GtaLib.Squish.Squish.DecompressImage(System.IntPtr,System.Int32,System.Int32,System.IntPtr,GtaLib.Squish.SquishFlags)">
+            <summary>
+            Decompresses an image using the parameters specified in <paramref name="flags"/>.
+            </summary>
+            <param name="rgba">Output RGBA decompressed image.</param>
+            <param name="width">Width of the image.</param>
+            <param name="height">Height of the image.</param>
+            <param name="blocks">Source DXT compressed image.</param>
+            <param name="flags">Decompression flags.</param>
+        </member>
+        <member name="M:GtaLib.Squish.Squish.DecompressImage(System.Byte[],System.Int32,System.Int32,GtaLib.Squish.SquishFlags)">
+            <summary>
+            Decompresses an image using the parameters specified in <paramref name="flags"/>.
+            </summary>
+            <param name="blocks">Source DXT compressed image.</param>
+            <param name="width">Width of the image.</param>
+            <param name="height">Height of the image.</param>
+            <param name="flags">Decompression flags.</param>
+            <returns>Output RGBA decompressed image.</returns>
+        </member>
+        <member name="T:GtaLib.Squish.SquishFlags">
+            <summary>
+            Flags used when compressing/decompressing DXT data. These are the same values as defined in squish.h.
+            </summary>
+        </member>
+        <member name="F:GtaLib.Squish.SquishFlags.Dxt1">
+            <summary>
+            Use DXT1 compression.
+            </summary>
+        </member>
+        <member name="F:GtaLib.Squish.SquishFlags.Dxt3">
+            <summary>
+            Use DXT3 compression.
+            </summary>
+        </member>
+        <member name="F:GtaLib.Squish.SquishFlags.Dxt5">
+            <summary>
+            Use DXT5 compression.
+            </summary>
+        </member>
+        <member name="F:GtaLib.Squish.SquishFlags.ColourIterativeClusterFit">
+            <summary>
+            Use a very slow but very high quality colour compressor.
+            </summary>
+        </member>
+        <member name="F:GtaLib.Squish.SquishFlags.ColourClusterFit">
+            <summary>
+            Use a slow but high quality colour compressor (the default).
+            </summary>
+        </member>
+        <member name="F:GtaLib.Squish.SquishFlags.ColourRangeFit">
+            <summary>
+            Use a fast but low quality colour compressor.
+            </summary>
+        </member>
+        <member name="F:GtaLib.Squish.SquishFlags.ColourMetricPerceptual">
+            <summary>
+            Use a perceptual metric for colour error (the default).
+            </summary>
+        </member>
+        <member name="F:GtaLib.Squish.SquishFlags.ColourMetricUniform">
+            <summary>
+            Use a uniform metric for colour error.
+            </summary>
+        </member>
+        <member name="F:GtaLib.Squish.SquishFlags.WeightColourByAlpha">
+            <summary>
+            Weight the colour by alpha during cluster fit (disabled by default).
+            </summary>
+        </member>
+        <member name="T:GtaLib.Squish.TXDTextureExtensions">
+            <summary>
+            Provides Squish Optional Methods for TXDTexture.
+            </summary>
+        </member>
+        <member name="M:GtaLib.Squish.TXDTextureExtensions.GetBitmapImage(GtaLib.TXD.TXDTexture,System.Int32)">
+            <summary>
+            Get Bitmap Image From TXDTexture.
+            </summary>
+            <param name="texture">The TXDTexture.</param>
+            <param name="level">The MipMap Level.</param>
+            <returns>Returns the <see cref="T:System.Drawing.Bitmap"/> corresponding of the TXDTexture data.</returns>
+        </member>
+    </members>
+</doc>

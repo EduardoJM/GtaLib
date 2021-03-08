@@ -27,10 +27,15 @@ namespace Demo
         {
             InitializeComponent();
 
-            using (FileStream fs = File.Open(@"C:\Users\Eduardo\Documents\Mods\San_Andreas_Farming_Equipment_DLC\San Andreas Farming Equipment DLC\combine.txd", FileMode.Open))
+            using (FileStream fs = File.Open(@"C:\Users\Eduardo\Documents\Mods\San_Andreas_Farming_Equipment_DLC\San Andreas Farming Equipment DLC\combine.dff", FileMode.Open))
             {
                 using (BinaryReader br = new BinaryReader(fs))
                 {
+                    ForceDFFReader fdr = new ForceDFFReader(br);
+                    RWSection sec = fdr.Read();
+                    AddNode(sec);
+
+                    /*
                     ForceTXDReader ftr = new ForceTXDReader(br);
                     RWSection sec = ftr.Read();
                     AddNode(sec);
@@ -51,6 +56,7 @@ namespace Demo
                             }
                         }
                     }
+                    */
 
                     /*
                     using (FileStream wfs = File.Create(@"C:\Users\Eduardo\Documents\Mods\San_Andreas_Farming_Equipment_DLC\San Andreas Farming Equipment DLC\combine_unlock.txd"))

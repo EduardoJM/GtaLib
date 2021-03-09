@@ -35,7 +35,7 @@ namespace GtaLib.TXD
                 {
                     RWSection data = textureNativeCollection[i].FindChild(RWSectionId.RW_SECTION_STRUCT);
                     RWTextureNativeData native = new RWTextureNativeData();
-                    native.Parse(data.Data);
+                    native.Parse(data);
                     Textures.Add(new TXDTexture(native));
                 }
             }

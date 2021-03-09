@@ -2,6 +2,6 @@
 {
     public abstract class RWSectionData
     {
-        public abstract void Parse(byte[] rawData);
+        public abstract void Parse(RWSection section);
     }
 }

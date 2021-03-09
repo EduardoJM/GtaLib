@@ -24,8 +24,9 @@ namespace RenderWareLib.SectionsData
 
 		public byte[] RawData { get; set; }
 
-        public override void Parse(byte[] rawData)
+        public override void Parse(RWSection section)
         {
+			byte[] rawData = section.Data;
 			Platform = BitConverter.ToInt32(rawData, 0);
 			FilterFlags = BitConverter.ToInt16(rawData, 4);
 			VWrap = rawData[6];

@@ -32,6 +32,10 @@ namespace GtaLib.Experimental.ForceReader
 
         private RWSection CurrentMaterialExtension { get; set; }
 
+        private RWSection CurrentAtomic { get; set; }
+
+        private RWSection CurrentAtomicExtension { get; set; }
+
         public ForceDFFReader(BinaryReader br)
         {
             this.br = br;
@@ -40,7 +44,7 @@ namespace GtaLib.Experimental.ForceReader
         public RWSection Read()
         {
             ReadHeader();
-
+            Clump.RecalculateSize();
             return Clump;
         }
 
@@ -52,6 +56,10 @@ namespace GtaLib.Experimental.ForceReader
                 Header = new RWSectionHeader((RWSectionId)br.ReadUInt32(), br.ReadUInt32(), br.ReadUInt32());
                 // System.Diagnostics.Debug.Print("Reading Header: " + Header.Id.ToString());
                 ParseSection();
+            }
+            else
+            {
+                // System.Diagnostics.Debug.Print("Ending Size: " + br.BaseStream.Position + " - " + br.BaseStream.Length);
             }
         }
 
@@ -110,12 +118,17 @@ namespace GtaLib.Experimental.ForceReader
                 case RWSectionId.RW_SECTION_NIGHT_VERTEX_COLORS:
                     ParseNightVertexColor();
                     break;
+                case RWSectionId.RW_SECTION_RIGHT_TO_RENDER:
+                    ParseRightToRender();
+                    break;
+                case RWSectionId.RW_SECTION_COLLISION_MODEL:
+                    ParseCollisionModel();
+                    break;
                 case RWSectionId.RW_SECTION_INVALID:
                 case RWSectionId.RW_SECTION_FRAME:
                     ParseUnused();
                     break;
                 default:
-                    System.Diagnostics.Debug.Print("Unused: " + Header.Id.ToString());
                     ParseUnused();
                     break;
             }
@@ -146,6 +159,9 @@ namespace GtaLib.Experimental.ForceReader
                 case RWSectionId.RW_SECTION_GEOMETRYLIST:
                     ParseGeometryListData();
                     break;
+                default:
+                    ParseUnused();
+                    break;
             }
         }
 
@@ -157,7 +173,7 @@ namespace GtaLib.Experimental.ForceReader
 
         private void ParseUnused()
         {
-            System.Diagnostics.Debug.Print("Unused - " + (Header.Id.ToString("X")));
+            System.Diagnostics.Debug.Print("Unused: " + Header.Id.ToString());
             if (br.BaseStream.Position + Header.Size > br.BaseStream.Length)
             {
             }
@@ -267,13 +283,18 @@ namespace GtaLib.Experimental.ForceReader
         private void ParseClump()
         {
             // System.Diagnostics.Debug.Print("Clump");
-            Clump = new RWSection(RWSectionId.RW_SECTION_CLUMP, Header.Version);
+            // uint version = 0x1803FFFF;
+            uint version = Header.Version;
+            Clump = new RWSection(RWSectionId.RW_SECTION_CLUMP, version);
             ReadHeader();
         }
 
         private void ParseAtomic()
         {
-            System.Diagnostics.Debug.Print("Atomic");
+            // System.Diagnostics.Debug.Print("Atomic");
+            CurrentAtomic = new RWSection(RWSectionId.RW_SECTION_ATOMIC, Clump);
+            CurrentMaterial = null;
+            CurrentMaterialExtension = null;
             ReadHeader();
         }
 
@@ -412,8 +433,13 @@ namespace GtaLib.Experimental.ForceReader
 
         private void ParseAtomicData()
         {
-            System.Diagnostics.Debug.Print("AtomicData");
-            br.BaseStream.Position += 4 * 4;
+            // System.Diagnostics.Debug.Print("AtomicData");
+            br.BaseStream.Position -= 12L;
+            RWSection sec = new RWSection(br.ReadBytes(12 + 4 * 4));
+            CurrentAtomic.AddChild(sec);
+
+            CurrentAtomicExtension = new RWSection(RWSectionId.RW_SECTION_EXTENSION, CurrentAtomic);
+
             ReadHeader();
         }
 
@@ -423,6 +449,7 @@ namespace GtaLib.Experimental.ForceReader
             RWSection sec = new RWSection(RWSectionId.RW_SECTION_STRUCT, GeometryList);
             sec.Data = br.ReadBytes(4);
             // br.BaseStream.Position += 4;
+
             ReadHeader();
         }
 
@@ -433,6 +460,7 @@ namespace GtaLib.Experimental.ForceReader
             // br.BaseStream.Position += Header.Size;
             RWSection sect = new RWSection(br.ReadBytes((int)Header.Size + 12));
             CurrentGeometry.AddChild(sect);
+
             ReadHeader();
         }
 
@@ -444,6 +472,7 @@ namespace GtaLib.Experimental.ForceReader
                 {
                     br.BaseStream.Position += (int)Header.Size;
                     ReadHeader();
+                    System.Diagnostics.Debug.Print("JUMP: MATERIAL_EFFECTS_PLG");
                     return;
                 }
                 CurrentMaterialExtension = new RWSection(RWSectionId.RW_SECTION_EXTENSION, CurrentMaterial);
@@ -530,7 +559,29 @@ namespace GtaLib.Experimental.ForceReader
             ReadHeader();
         }
 
+        private void ParseRightToRender()
+        {
+            br.BaseStream.Position -= 12L;
+            RWSection sec = new RWSection(br.ReadBytes(20));
 
+            CurrentAtomicExtension.AddChild(sec);
+
+            ReadHeader();
+        }
+
+        private void ParseCollisionModel()
+        {
+            CurrentAtomicExtension = null;
+            CurrentAtomic = null;
+
+            br.BaseStream.Position -= 12L;
+            RWSection sec = new RWSection(RWSectionId.RW_SECTION_EXTENSION, Clump);
+
+            RWSection col = new RWSection(br.ReadBytes(12 + (int)Header.Size));
+            sec.AddChild(col);
+
+            ReadHeader();
+        }
 
     }
 }

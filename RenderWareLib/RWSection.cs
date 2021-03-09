@@ -258,7 +258,7 @@ namespace RenderWareLib
                 if (Parent != null)
                 {
                     // TODO: childResized
-                    Parent.RecalculateSize();
+                    // Parent.RecalculateSize();
                 }
             }
         }
@@ -277,7 +277,7 @@ namespace RenderWareLib
             if (Parent != null)
             {
                 // TODO: childResized
-                Parent.RecalculateSize();
+                // Parent.RecalculateSize();
             }
         }
 
@@ -353,13 +353,15 @@ namespace RenderWareLib
 
         public uint RecalculateSize()
         {
-            return 0;
+            // return 0;
+            // System.Diagnostics.Debug.Print(Header.Id + " - " + Header.IsContainer());
             if (!Header.IsContainer())
             {
                 Header.Size = (uint)Data.Length;
-            } else
+            }
+            else
             {
-                EnsureContainer();
+                // EnsureContainer();
                 uint size = 0;
                 for (int i = 0; i < Children.Count; i += 1)
                 {
@@ -367,11 +369,24 @@ namespace RenderWareLib
                 }
                 Header.Size = size;
             }
-            return Header.Size;
+            return Header.Size + 12;
+        }
+
+        public void SetVersion(uint version, bool childs)
+        {
+            Header.Version = version;
+            if (childs)
+            {
+                for (int i = 0; i < Children.Count; i += 1)
+                {
+                    Children[i].SetVersion(version, true);
+                }
+            }
         }
 
         public void Write(BinaryWriter bw)
         {
+            System.Diagnostics.Debug.Print("Writing: " + Header.Id);
             Header.Write(bw);
             if (!Header.IsContainer())
             {
@@ -381,6 +396,10 @@ namespace RenderWareLib
             {
                 for (int i = 0; i < Children.Count; i += 1)
                 {
+                    if (Header.Id == RWSectionId.RW_SECTION_EXTENSION)
+                    {
+                        System.Diagnostics.Debug.Print(((uint)Children[i].Header.Id).ToString("X"));
+                    }
                     Children[i].Write(bw);
                 }
             }

@@ -2,6 +2,8 @@
 using System.IO;
 using System.Collections.Generic;
 
+using RenderWareLib.SectionsData;
+
 namespace RenderWareLib
 {
     /// <summary>
@@ -67,6 +69,15 @@ namespace RenderWareLib
             {
                 return null;
             }
+            /*
+            if (lastRead != null)
+            {
+                if (lastRead.Header.Id == RWSectionId.RW_SECTION_MATERIALLIST)
+                {
+                    return null;
+                }
+            }
+            */
             return ReadSectionBody(br, header);
         }
         #endregion
@@ -94,26 +105,7 @@ namespace RenderWareLib
         /// <summary>
         /// Gets or Sets the Section Data;
         /// </summary>
-        public byte[] Data
-        {
-            get { return _data; }
-            set
-            {
-                if (value == null || value.Length == 0)
-                {
-                    _data = value;
-                    if (Header != null)
-                    {
-                        Header.Size = 0;
-                    }
-                }
-                else
-                {
-                    _data = value;
-                    Header.Size = (uint)_data.Length;
-                }
-            }
-        }
+        public byte[] Data { get; set; }
         #endregion
 
         #region Constructors
@@ -403,6 +395,65 @@ namespace RenderWareLib
                     Children[i].Write(bw);
                 }
             }
+        }
+
+        public RWSectionData GetParsedData()
+        {
+            RWSectionData secData = null;
+            if (Header.Id == RWSectionId.RW_SECTION_STRUCT)
+            {
+                RWSection sec = Parent;
+                if (sec == null)
+                {
+                    return null;
+                }
+                switch (sec.Header.Id)
+                {
+                    case RWSectionId.RW_SECTION_FRAMELIST:
+                        secData = new RWFrameListData();
+                        break;
+                    case RWSectionId.RW_SECTION_GEOMETRY:
+                        secData = new RWGeometryData();
+                        break;
+                    case RWSectionId.RW_SECTION_GEOMETRYLIST:
+                        secData = new RWGeometryListData();
+                        break;
+                    case RWSectionId.RW_SECTION_MATERIALLIST:
+                        secData = new RWMaterialListData();
+                        break;
+                    case RWSectionId.RW_SECTION_MATERIAL:
+                        secData = new RWMaterialData();
+                        break;
+                    case RWSectionId.RW_SECTION_TEXTURE:
+                        secData = new RWTextureData();
+                        break;
+                    case RWSectionId.RW_SECTION_ATOMIC:
+                        secData = new RWAtomicData();
+                        break;
+                }
+            }
+            else if (Header.Id == RWSectionId.RW_SECTION_MATERIALSPLIT)
+            {
+                secData = new RWMaterialSplitData();
+            }
+            else if (Header.Id == RWSectionId.RW_SECTION_FRAME)
+            {
+                secData = new RWFrameData();
+            }
+            else if (Header.Id == RWSectionId.RW_SECTION_HANIM_PLG)
+            {
+                secData = new RWHAnimPLGData();
+            }
+            else if (Header.Id == RWSectionId.RW_SECTION_STRING)
+            {
+                secData = new RWStringData();
+            }
+            if (secData != null)
+            {
+                secData.Parse(this);
+                return secData;
+            }
+            return null;
         }
     }
 }

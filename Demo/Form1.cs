@@ -12,7 +12,9 @@ using System.Windows.Forms;
 using GtaLib.DFF;
 using GtaLib.TXD;
 using RenderWareLib;
+using RenderWareLib.SectionsData;
 using RenderWareLib.SectionsData.TXD;
+using RenderWareLib.SectionsData.DFF;
 using GtaLib.Renderer.TXD;
 
 using GtaLib.Squish;
@@ -36,72 +38,82 @@ namespace Demo
                 {
                     ForceDFFReader fdr = new ForceDFFReader(br);
                     RWSection sec = fdr.Read();
-                    sec.SetVersion(0x1803FFFF, true);
+                    sec.SetVersion(RWVersion.RW_VERSION_GTASA, true);
                     AddNode(sec);
 
-                    RWSection frameList = sec.FindChild(RWSectionId.RW_SECTION_FRAMELIST);
-                    // RWSection[] geometries = geoList.FindChildCollection(RWSectionId.RW_SECTION_GEOMETRY);
-                    RWSection frameListStruct = frameList.FindChild(RWSectionId.RW_SECTION_STRUCT);
+                    RWSection geomList = sec.FindChild(RWSectionId.RW_SECTION_GEOMETRYLIST);
 
-                    /*
-                    List<byte> output = new List<byte>();
-                    using (MemoryStream frameMs = new MemoryStream(frameListStruct.Data))
+                    if (geomList != null)
                     {
-                        using (BinaryReader frameBr = new BinaryReader(frameMs))
+                        RWSection[] geoCollection = geomList.FindChildCollection(RWSectionId.RW_SECTION_GEOMETRY);
+                        for (int i = 0; i < geoCollection.Length; i += 1)
                         {
-                            uint frames = frameBr.ReadUInt32();
-                            output.AddRange(BitConverter.GetBytes(frames));
-                            for (int i = 0; i < frames; i += 1)
+                            RWSection geo = geoCollection[i];
+                            RWSection geoStruct = geo.FindChild(RWSectionId.RW_SECTION_STRUCT);
+                            RWGeometryData dt = geoStruct.GetParsedData() as RWGeometryData;
+                            // MessageBox.Show(dt.VertexCount.ToString());
+
+                            RWSection extension = geo.FindChild(RWSectionId.RW_SECTION_EXTENSION);
+                            RWSection matSplit = extension.FindChild(RWSectionId.RW_SECTION_MATERIALSPLIT);
+
+                            RWMaterialSplitData splitData = matSplit.GetParsedData() as RWMaterialSplitData;
+                            StringBuilder vertices = new StringBuilder();
+                            StringBuilder uvs = new StringBuilder();
+                            StringBuilder normals = new StringBuilder();
+                            // vertices.AppendLine("g");
+                            for (int k = 0; k < dt.Vertices.Length; k++)
                             {
-                                float[] row1 = new float[3];
-                                row1[0] = frameBr.ReadSingle();
-                                row1[1] = frameBr.ReadSingle();
-                                row1[2] = frameBr.ReadSingle();
-                                float row1Length = (float)Math.Sqrt(row1[0] * row1[0] + row1[1] * row1[1] + row1[2] * row1[2]);
-                                row1[0] /= row1Length;
-                                row1[1] /= row1Length;
-                                row1[2] /= row1Length;
-                                System.Diagnostics.Debug.Print("Row 1 Length: " + row1Length);
-                                float[] row2 = new float[3];
-                                row2[0] = frameBr.ReadSingle();
-                                row2[1] = frameBr.ReadSingle();
-                                row2[2] = frameBr.ReadSingle();
-                                float row2Length = (float)Math.Sqrt(row2[0] * row2[0] + row2[1] * row2[1] + row2[2] * row2[2]);
-                                row2[0] /= row2Length;
-                                row2[1] /= row2Length;
-                                row2[2] /= row2Length;
-                                System.Diagnostics.Debug.Print("Row 2 Length: " + row2Length);
-                                float[] row3 = new float[3];
-                                row3[0] = frameBr.ReadSingle();
-                                row3[1] = frameBr.ReadSingle();
-                                row3[2] = frameBr.ReadSingle();
-                                float row3Length = (float)Math.Sqrt(row3[0] * row3[0] + row3[1] * row3[1] + row3[2] * row3[2]);
-                                row3[0] /= row3Length;
-                                row3[1] /= row3Length;
-                                row3[2] /= row3Length;
-                                System.Diagnostics.Debug.Print("Row 3 Length: " + row3Length);
-
-                                output.AddRange(BitConverter.GetBytes(row1[0]));
-                                output.AddRange(BitConverter.GetBytes(row1[1]));
-                                output.AddRange(BitConverter.GetBytes(row1[2]));
-                                output.AddRange(BitConverter.GetBytes(row2[0]));
-                                output.AddRange(BitConverter.GetBytes(row2[1]));
-                                output.AddRange(BitConverter.GetBytes(row2[2]));
-                                output.AddRange(BitConverter.GetBytes(row3[0]));
-                                output.AddRange(BitConverter.GetBytes(row3[1]));
-                                output.AddRange(BitConverter.GetBytes(row3[2]));
-
-                                output.AddRange(frameBr.ReadBytes(12 + 8));
-                                // frameBr.BaseStream.Position += 12 + 8;
+                                vertices.AppendLine(string.Format("v {0} {1} {2}", dt.Vertices[k].X, dt.Vertices[k].Y, dt.Vertices[k].Z));
+                                /*
+                                if (dt.TexCoords.Length > 0)
+                                {
+                                    uvs.AppendLine(string.Format("vt {0} {1}", dt.TexCoords[0][k].X, dt.TexCoords[0][k].Y));
+                                }
+                                */
+                                /*
+                                if (dt.Normals.Length > 0)
+                                {
+                                    normals.AppendLine(string.Format("vn {0} {1} {2}", dt.Normals[k].X, dt.Normals[k].Y, dt.Normals[k].Z));
+                                }
+                                */
                             }
+                            StringBuilder faces = new StringBuilder();
+                            if (splitData.TriangleMode == DFFTriangleMode.TriangleList)
+                            {
+                                List<RWGeometryDataTriangle> triangles = new List<RWGeometryDataTriangle>();
+                                for (int k = 0; k < splitData.Meshes.Length; k++)
+                                {
+                                    // faces.AppendLine("g mesh" + (k + 1).ToString());
+                                    for (int n = 0; n < splitData.Meshes[k].Indices.Length; n += 3)
+                                    {
+                                        RWGeometryDataTriangle tri = new RWGeometryDataTriangle();
+                                        tri.Vertex1 = (ushort)splitData.Meshes[k].Indices[n];
+                                        tri.Vertex2 = (ushort)splitData.Meshes[k].Indices[n + 1];
+                                        tri.Vertex3 = (ushort)splitData.Meshes[k].Indices[n + 2];
+                                        tri.MaterialId = (ushort)splitData.Meshes[k].MaterialIndex;
+                                        faces.AppendLine(string.Format("f {0} {1} {2}", splitData.Meshes[k].Indices[n], splitData.Meshes[k].Indices[n + 1], splitData.Meshes[k].Indices[n + 2]));
+                                        triangles.Add(tri);
+                                    }
+                                }
+                                // MessageBox.Show(dt.TriangleCount + " - " + triangles.Count);
+                                dt.TriangleCount = (uint)triangles.Count;
+                                dt.Triangles = triangles.ToArray();
+                                geoStruct.Data = dt.GetData(geoStruct);
+                            }
+                            else
+                            {
+                                throw new Exception("Unsupported yet.");
+                            }
+
+                            string fileData = vertices.ToString() + "\r\n\r\n" + uvs.ToString() + "\r\n\r\n" + normals.ToString() + "\r\n\r\n\r\n" + faces.ToString();
+                            File.WriteAllText(@"C:\Users\Eduardo\Documents\Mods\testing.obj", fileData.Replace(',', '.'));
                         }
                     }
-                    frameListStruct.Data = output.ToArray();
-                    */
 
                     sec.RecalculateSize();
 
 
+                    
                     using (FileStream wfs = File.Create(@"C:\Users\Eduardo\Documents\Mods\San_Andreas_Farming_Equipment_DLC\San Andreas Farming Equipment DLC\combine_unlock.dff"))
                     // using (FileStream wfs = File.Create(@"C:\Users\Eduardo\Documents\Mods\1542580207_Honda_Prelude_Si_1994_Avant\HQLM\cadrona_demo.dff"))
                     {
